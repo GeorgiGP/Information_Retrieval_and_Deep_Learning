@@ -1,0 +1,16 @@
+name: tii
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.12
+  - pytorch
+  - torchvision
+  - ipython
+  - numpy
+  - scipy
+  - tqdm
+  - docopt
+  - nltk
+  - matplotlib
+  - pip

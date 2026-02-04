@@ -1,0 +1,14 @@
+bin/
+lib/
+share/
+**/__pycache__/
+*.pyc
+
+trainData/
+corpusPoems
+modelLSTM*
+nltk_data/
+JOURNALISM.BG
+**/trainData
+*.npy
+*.zip
