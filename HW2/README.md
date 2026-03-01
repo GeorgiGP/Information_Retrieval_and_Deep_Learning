@@ -1,96 +1,96 @@
-# Word2Vec Skip-gram с Negative Sampling и Квадратична Форма
+# Word2Vec Skip-gram with Negative Sampling and Quadratic Form
 
-## Имплементация на Модифициран Word2Vec Модел за Български Език
+## Implementation of a Modified Word2Vec Model for Bulgarian Language
 
-**Автор:** Георги Х. Лазов
-**Факултетен номер:** 0MI0600299
-**Курс:** Търсене и извличане на информация. Приложение на дълбоко машинно обучение
-**Преподавател:** проф. Стоян Михов
-**Семестър:** Зимен 2025/2026
-
----
-
-## Резюме (Abstract)
-
-Настоящата работа представя имплементация на модифициран Word2Vec Skip-gram модел с negative sampling за обучение на словни влагания (word embeddings) върху корпус от български публицистични текстове. Ключовата модификация спрямо стандартния Word2Vec е въвеждането на матрица W като параметър на квадратична форма в модела. Имплементирани са функции за изчисляване на загуба и градиенти както за единични наблюдения, така и за партидна обработка с използване на тензорни операции. Резултатите демонстрират успешно групиране на семантично свързани думи в двумерното пространство.
-
-**Ключови думи:** Word2Vec, Skip-gram, Negative Sampling, Word Embeddings, Natural Language Processing, Bulgarian Language
+**Author:** Georgi H. Lazov
+**Student ID:** 0MI0600299
+**Course:** Information Retrieval and Deep Learning
+**Instructor:** Prof. Stoyan Mihov
+**Semester:** Winter 2025/2026
 
 ---
 
-## 1. Въведение
+## Abstract
 
-### 1.1 Мотивация
+This work presents an implementation of a modified Word2Vec Skip-gram model with negative sampling for training word embeddings on a corpus of Bulgarian journalistic texts. The key modification compared to standard Word2Vec is the introduction of a matrix W as a quadratic form parameter in the model. Functions for computing loss and gradients are implemented for both single observations and batch processing using tensor operations. The results demonstrate successful clustering of semantically related words in two-dimensional space.
 
-Словните влагания (word embeddings) са фундаментален компонент в съвременната обработка на естествен език. Те представляват думите като плътни вектори в непрекъснато пространство, като семантично подобни думи се разполагат близо една до друга.
-
-### 1.2 Цели на проекта
-
-1. Имплементиране на функции за семплиране с негативни примери
-2. Изчисляване на функция на загуба и градиенти за модифициран Skip-gram модел
-3. Оптимизирано партидно изчисление на градиенти с тензорни операции
-4. Имплементация на стохастично спускане по градиента (SGD)
-5. Обучение на модела върху български текстов корпус
-
-### 1.3 Използван корпус
-
-Моделът е обучен върху **Корпус от публицистични текстове за Югоизточна Европа**, предоставен от Института за български език към БАН:
-- **Брой документи:** 35,337
-- **Размер:** 7.9 MB
-- **Език:** Български
-- **Източник:** http://dcl.bas.bg/BulNC-registration/
+**Keywords:** Word2Vec, Skip-gram, Negative Sampling, Word Embeddings, Natural Language Processing, Bulgarian Language
 
 ---
 
-## 2. Теоретична Основа
+## 1. Introduction
 
-### 2.1 Word2Vec Skip-gram Модел
+### 1.1 Motivation
 
-Word2Vec Skip-gram моделът цели да предвиди контекстните думи по дадена целева дума. За всяка двойка (целева дума w, контекстна дума c) моделът учи две матрици на влагания:
-- **U** — матрица на влаганията за целеви думи (размерност V × M)
-- **V** — матрица на влаганията за контекстни думи (размерност V × M)
+Word embeddings are a fundamental component in modern natural language processing. They represent words as dense vectors in a continuous space, where semantically similar words are positioned close to each other.
 
-където V е размерът на речника, а M е размерността на влаганията.
+### 1.2 Project Objectives
 
-### 2.2 Модификация с Квадратична Форма
+1. Implement sampling functions with negative examples
+2. Compute loss function and gradients for a modified Skip-gram model
+3. Optimize batch gradient computation using tensor operations
+4. Implement stochastic gradient descent (SGD)
+5. Train the model on a Bulgarian text corpus
 
-В настоящата имплементация е въведена допълнителна матрица **W** (размерност M × M) като параметър на квадратична форма:
+### 1.3 Corpus Used
+
+The model was trained on the **Corpus of Journalistic Texts for Southeastern Europe**, provided by the Institute for Bulgarian Language at the Bulgarian Academy of Sciences:
+- **Number of documents:** 35,337
+- **Size:** 7.9 MB
+- **Language:** Bulgarian
+- **Source:** http://dcl.bas.bg/BulNC-registration/
+
+---
+
+## 2. Theoretical Background
+
+### 2.1 Word2Vec Skip-gram Model
+
+The Word2Vec Skip-gram model aims to predict context words given a target word. For each pair (target word w, context word c), the model learns two embedding matrices:
+- **U** — embedding matrix for target words (dimension V × M)
+- **V** — embedding matrix for context words (dimension V × M)
+
+where V is the vocabulary size and M is the embedding dimension.
+
+### 2.2 Quadratic Form Modification
+
+In this implementation, an additional matrix **W** (dimension M × M) is introduced as a quadratic form parameter:
 
 $$t = v_c \cdot (W \cdot u_w) - q$$
 
-където:
-- $u_w$ е влагането на целевата дума
-- $v_c$ е влагането на контекстната дума
-- $W$ е матрицата на квадратичната форма
-- $q$ е логаритъм от вероятността за negative sampling
+where:
+- $u_w$ is the target word embedding
+- $v_c$ is the context word embedding
+- $W$ is the quadratic form matrix
+- $q$ is the log probability for negative sampling
 
 ### 2.3 Negative Sampling
 
-Negative sampling е техника за апроксимиране на softmax функцията, която значително ускорява обучението. Вместо да се изчислява вероятност върху целия речник, се избират n негативни примери с вероятност:
+Negative sampling is a technique for approximating the softmax function that significantly speeds up training. Instead of computing probability over the entire vocabulary, n negative examples are selected with probability:
 
 $$P(w) \propto f(w)^{0.75}$$
 
-където $f(w)$ е честотата на думата в корпуса.
+where $f(w)$ is the word frequency in the corpus.
 
-### 2.4 Функция на Загуба
+### 2.4 Loss Function
 
-Функцията на загуба за едно наблюдение е бинарна cross-entropy:
+The loss function for a single observation is binary cross-entropy:
 
 $$J = -\sum_{i} \left[ \delta_i \log(\sigma(t_i)) + (1-\delta_i) \log(1-\sigma(t_i)) \right]$$
 
-където:
-- $\sigma(x) = \frac{1}{1+e^{-x}}$ е сигмоидна функция
-- $\delta_i = 1$ за положителния пример (i=0), $\delta_i = 0$ за негативните
+where:
+- $\sigma(x) = \frac{1}{1+e^{-x}}$ is the sigmoid function
+- $\delta_i = 1$ for the positive example (i=0), $\delta_i = 0$ for negative examples
 
 ---
 
-## 3. Имплементация
+## 3. Implementation
 
-### 3.1 Функции за Семплиране (`sampling.py`)
+### 3.1 Sampling Functions (`sampling.py`)
 
 #### 3.1.1 createSamplingSequence
 
-Създава последователност за семплиране, в която всеки индекс на дума се среща пропорционално на $f(w)^{0.75}$:
+Creates a sampling sequence where each word index appears proportionally to $f(w)^{0.75}$:
 
 ```python
 def createSamplingSequence(freqs):
@@ -101,11 +101,11 @@ def createSamplingSequence(freqs):
     return seq
 ```
 
-**Сложност:** O(V × средна честота^0.75)
+**Complexity:** O(V × average frequency^0.75)
 
 #### 3.1.2 noiseDistribution
 
-Изчислява логаритмите от вероятностите за negative sampling:
+Computes the log probabilities for negative sampling:
 
 ```python
 def noiseDistribution(freqs, negativesCount):
@@ -115,11 +115,11 @@ def noiseDistribution(freqs, negativesCount):
     return q_noise
 ```
 
-### 3.2 Изчисляване на Градиенти (`grads.py`)
+### 3.2 Gradient Computation (`grads.py`)
 
-#### 3.2.1 lossAndGradient (единично наблюдение)
+#### 3.2.1 lossAndGradient (Single Observation)
 
-Изчислява загубата и градиентите за едно наблюдение:
+Computes loss and gradients for a single observation:
 
 ```python
 def lossAndGradient(u_w, Vt, W, q):
@@ -141,14 +141,14 @@ def lossAndGradient(u_w, Vt, W, q):
     return J, du_w, dVt, dW
 ```
 
-**Градиенти:**
+**Gradients:**
 - $\frac{\partial J}{\partial u_w} = W^T V^T (\sigma(t) - \delta)$
 - $\frac{\partial J}{\partial V} = (\sigma(t) - \delta) \cdot (u_w W^T)$
 - $\frac{\partial J}{\partial W} = V^T (\sigma(t) - \delta) \cdot u_w^T$
 
-#### 3.2.2 lossAndGradientBatched (партидна обработка)
+#### 3.2.2 lossAndGradientBatched (Batch Processing)
 
-Оптимизирана версия с тензорни операции за обработка на S наблюдения наведнъж:
+Optimized version using tensor operations for processing S observations simultaneously:
 
 ```python
 def lossAndGradientBatched(u_w, Vt, W, q):
@@ -175,12 +175,12 @@ def lossAndGradientBatched(u_w, Vt, W, q):
     return J, du_w, dVt, dW
 ```
 
-**Ключови оптимизации:**
-- Използване на `np.einsum` за ефективни тензорни контракции
-- Избягване на експлицитни цикли
-- Векторизирани операции за цялата партида
+**Key Optimizations:**
+- Use of `np.einsum` for efficient tensor contractions
+- Avoidance of explicit loops
+- Vectorized operations for the entire batch
 
-### 3.3 Стохастично Спускане по Градиента (`w2v_sgd.py`)
+### 3.3 Stochastic Gradient Descent (`w2v_sgd.py`)
 
 ```python
 def stochasticGradientDescend(data, U0, V0, W0, contextFunction,
@@ -192,14 +192,14 @@ def stochasticGradientDescend(data, U0, V0, W0, contextFunction,
     for epoch in range(epochs):
         np.random.shuffle(idx)
         for b in range(0, len(idx), batchSize):
-            # Подготовка на партидата
+            # Prepare batch
             batchData = [(w, contextFunction(c))
                          for w, c in data[idx[b:b+batchSize]]]
 
-            # Изчисляване на градиенти
+            # Compute gradients
             J, du_w, dVt, dW = lossAndGradientFunction(u_w, Vt, W, q)
 
-            # Актуализация на параметрите
+            # Update parameters
             W -= alpha * dW
             for k, (w, context) in enumerate(batchData):
                 U[w] -= alpha * du_w[k]
@@ -210,85 +210,85 @@ def stochasticGradientDescend(data, U0, V0, W0, contextFunction,
 
 ---
 
-## 4. Параметри на Модела
+## 4. Model Parameters
 
-| Параметър | Стойност | Описание |
-|-----------|----------|----------|
-| embDim | 50 | Размерност на влаганията |
-| windowSize | 3 | Размер на контекстния прозорец |
-| negativesCount | 5 | Брой негативни примери |
-| batchSize | 1000 | Размер на партидата |
-| epochs | 1 | Брой епохи |
-| alpha | 1.0 | Скорост на обучение |
-| vocabularySize | 20,000 | Размер на речника |
+| Parameter | Value | Description |
+|-----------|-------|-------------|
+| embDim | 50 | Embedding dimension |
+| windowSize | 3 | Context window size |
+| negativesCount | 5 | Number of negative samples |
+| batchSize | 1000 | Batch size |
+| epochs | 1 | Number of epochs |
+| alpha | 1.0 | Learning rate |
+| vocabularySize | 20,000 | Vocabulary size |
 
 ---
 
-## 5. Резултати
+## 5. Results
 
-### 5.1 Визуализация на Влаганията
+### 5.1 Embedding Visualization
 
-След обучението, влаганията са редуцирани до 2D чрез SVD и нормализирани. На фигурата по-долу е показано разполагането на избрани думи:
+After training, embeddings were reduced to 2D using SVD and normalized. The figure below shows the arrangement of selected words:
 
 ![Word Embeddings Visualization](a2/embeddings.png)
 
-### 5.2 Семантично Групиране
+### 5.2 Semantic Clustering
 
-Визуализацията демонстрира успешно семантично групиране:
+The visualization demonstrates successful semantic clustering:
 
-**Група 1: Времеви понятия**
-- "януари", "октомври" — месеци, групирани в горната лява част
+**Group 1: Temporal Concepts**
+- "януари" (January), "октомври" (October) — months, clustered in the upper left
 
-**Група 2: Икономически термини**
-- "пазар", "стоки", "бизнес", "фирма", "бюджет" — икономически понятия, групирани в долната дясна част
+**Group 2: Economic Terms**
+- "пазар" (market), "стоки" (goods), "бизнес" (business), "фирма" (company), "бюджет" (budget) — economic concepts, clustered in the lower right
 
-**Група 3: Енергийни ресурси**
-- "петрол", "нефт" — синоними, разположени близо един до друг
+**Group 3: Energy Resources**
+- "петрол" (petroleum), "нефт" (oil) — synonyms, positioned close to each other
 
-### 5.3 Производителност
+### 5.3 Performance
 
-Партидната версия (`lossAndGradientBatched`) постига **над 2 пъти по-бързо изпълнение** в сравнение с кумулативната версия благодарение на:
-- Векторизирани тензорни операции
-- Ефективно използване на `numpy` и `einsum`
-- Избягване на Python цикли
-
----
-
-## 6. Тестове
-
-Всички имплементирани функции са валидирани чрез предоставените тестове:
-
-| Тест | Функция | Резултат |
-|------|---------|----------|
-| test 3 | createSamplingSequence | ✓ Преминат |
-| test 3 | noiseDistribution | ✓ Преминат |
-| test 4 | lossAndGradient | ✓ Преминат |
-| test 5 | lossAndGradientBatched | ✓ Преминат |
-| test 6 | stochasticGradientDescend | ✓ Преминат |
+The batched version (`lossAndGradientBatched`) achieves **over 2x faster execution** compared to the cumulative version due to:
+- Vectorized tensor operations
+- Efficient use of `numpy` and `einsum`
+- Avoidance of Python loops
 
 ---
 
-## 7. Изводи
+## 6. Tests
 
-### 7.1 Постигнати резултати
+All implemented functions were validated through the provided tests:
 
-1. **Успешна имплементация** на модифициран Word2Vec Skip-gram модел с квадратична форма
-2. **Ефективно партидно изчисление** на градиенти с тензорни операции
-3. **Семантично смислени влагания** за български език
-4. **Валидация** чрез всички предоставени тестове
-
-### 7.2 Възможности за развитие
-
-- Увеличаване на размерността на влаганията (100-300)
-- Експерименти с различни стойности на negativesCount
-- Прилагане на learning rate scheduling
-- Оценка чрез word analogy задачи
+| Test | Function | Result |
+|------|----------|--------|
+| test 3 | createSamplingSequence | ✓ Passed |
+| test 3 | noiseDistribution | ✓ Passed |
+| test 4 | lossAndGradient | ✓ Passed |
+| test 5 | lossAndGradientBatched | ✓ Passed |
+| test 6 | stochasticGradientDescend | ✓ Passed |
 
 ---
 
-## 8. Технически Детайли
+## 7. Conclusions
 
-### 8.1 Изисквания
+### 7.1 Achieved Results
+
+1. **Successful implementation** of a modified Word2Vec Skip-gram model with quadratic form
+2. **Efficient batch computation** of gradients using tensor operations
+3. **Semantically meaningful embeddings** for Bulgarian language
+4. **Validation** through all provided tests
+
+### 7.2 Future Work
+
+- Increase embedding dimension (100-300)
+- Experiment with different negativesCount values
+- Apply learning rate scheduling
+- Evaluate using word analogy tasks
+
+---
+
+## 8. Technical Details
+
+### 8.1 Requirements
 
 ```
 Python >= 3.5
@@ -298,54 +298,54 @@ matplotlib
 scikit-learn
 ```
 
-### 8.2 Структура на Проекта
+### 8.2 Project Structure
 
 ```
 HW2/
-├── README.md                 # Настоящият документ
-├── Tasks_1_and_2.pdf        # Теоретични задачи
+├── README.md                 # This document
+├── Tasks_1_and_2.pdf        # Theoretical tasks
 ├── a2/
-│   ├── grads.py             # Функции за загуба и градиенти
-│   ├── sampling.py          # Функции за семплиране
-│   ├── w2v_sgd.py           # SGD имплементация
-│   ├── utils.py             # Помощни функции
-│   ├── run.py               # Основен скрипт за обучение
-│   ├── test.py              # Тестове
-│   ├── w2v-U.npy            # Обучена U матрица
-│   ├── w2v-V.npy            # Обучена V матрица
-│   ├── w2v-W.npy            # Обучена W матрица
-│   └── embeddings.png       # Визуализация
-└── FN0MI0600299/            # Финална версия за предаване
+│   ├── grads.py             # Loss and gradient functions
+│   ├── sampling.py          # Sampling functions
+│   ├── w2v_sgd.py           # SGD implementation
+│   ├── utils.py             # Utility functions
+│   ├── run.py               # Main training script
+│   ├── test.py              # Tests
+│   ├── w2v-U.npy            # Trained U matrix
+│   ├── w2v-V.npy            # Trained V matrix
+│   ├── w2v-W.npy            # Trained W matrix
+│   └── embeddings.png       # Visualization
+└── FN0MI0600299/            # Final submission version
 ```
 
-### 8.3 Изпълнение
+### 8.3 Execution
 
 ```bash
-# Активиране на средата
+# Activate environment
 conda activate tii
 
-# Изпълнение с партидни градиенти (по подразбиране)
+# Run with batched gradients (default)
 python run.py
 
-# Изпълнение с кумулативни градиенти
+# Run with cumulative gradients
 python run.py cumulative
 
-# Изпълнение на тестове
-python test.py 3  # Тест за sampling функции
-python test.py 4  # Тест за lossAndGradient
-python test.py 5  # Тест за lossAndGradientBatched
-python test.py 6  # Тест за SGD
+# Run tests
+python test.py 3  # Test sampling functions
+python test.py 4  # Test lossAndGradient
+python test.py 5  # Test lossAndGradientBatched
+python test.py 6  # Test SGD
 ```
 
 ---
 
-## Референции
+## References
 
 1. Mikolov, T., et al. (2013). *Efficient Estimation of Word Representations in Vector Space*. arXiv:1301.3781
 2. Mikolov, T., et al. (2013). *Distributed Representations of Words and Phrases and their Compositionality*. NIPS 2013
 3. Goldberg, Y., & Levy, O. (2014). *word2vec Explained: Deriving Mikolov et al.'s Negative-Sampling Word-Embedding Method*. arXiv:1402.3722
-4. Корпус от публицистични текстове за Югоизточна Европа, Институт за български език, БАН
+4. Corpus of Journalistic Texts for Southeastern Europe, Institute for Bulgarian Language, Bulgarian Academy of Sciences
 
 ---
 
-*Документът е създаден като част от Домашно задание 2 по курса "Търсене и извличане на информация. Приложение на дълбоко машинно обучение", ФМИ, СУ "Св. Климент Охридски", 2025/2026*
+*This document was created as part of Homework Assignment 2 for the course "Information Retrieval and Deep Learning", Faculty of Mathematics and Informatics, Sofia University "St. Kliment Ohridski", 2025/2026*
