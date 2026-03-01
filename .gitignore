@@ -12,3 +12,4 @@ JOURNALISM.BG
 **/trainData
 *.npy
 *.zip
+*.DS_Store
