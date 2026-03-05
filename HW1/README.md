@@ -402,32 +402,80 @@ HW1/
 cd HW1
 python3 -m venv venv
 source venv/bin/activate
-pip install numpy
+pip install numpy nltk
 
 # Navigate to working directory
 cd a1
 
-# Run in Python interpreter
-python
->>> import langmodel
->>> import a1
->>>
->>> # Load corpus and build language model
->>> corpus = [...]  # Load from corpus file
->>> model = langmodel.MarkovModel(corpus, K=3)
->>>
->>> # Compute edit distance
->>> M = a1.editDistance("редакция", "рдашиа")
->>> print(M[-1, -1])  # 4.0
->>>
->>> # Get optimal alignment
->>> alignment = a1.bestAlignment("редакция", "рдашиа")
->>> print(list(alignment))
->>>
->>> # Correct spelling
->>> weights = a1.trainWeights(error_corpus)
->>> corrected = a1.correctSpelling("българси език", model, weights)
->>> print(corrected)  # "български език"
+# Test edit distance
+python -c "
+import sys
+sys.path.insert(0, '../solution')
+import a1
+
+print('Edit distance (редакция -> рдашиа):', a1.editDistance('редакция', 'рдашиа')[-1, -1])
+print('Edit distance (заявката -> язвката):', a1.editDistance('заявката', 'язвката')[-1, -1])
+print('Edit distance (супермен -> спер мън):', a1.editDistance('супермен', 'спер мън')[-1, -1])
+"
+
+# Test alignment
+python -c "
+import sys
+sys.path.insert(0, '../solution')
+import a1
+
+alignment = a1.bestAlignment('редакция', 'рдашиа')
+print('Alignment (редакция -> рдашиа):')
+for a, b in alignment:
+    print(f'  {repr(a)} -> {repr(b)}')
+"
+
+# Test generateEdits
+python -c "
+import sys
+sys.path.insert(0, '../solution')
+import a1
+
+edits = set(a1.generateEdits('тест')) - set(['тест'])
+print('Number of unique edits for тест:', len(edits))
+print('Sample edits:', list(edits)[:10])
+"
+
+# Test editWeight (with learned operation costs)
+python -c "
+import sys
+sys.path.insert(0, '../solution')
+import langmodel
+import a1
+
+# Create weights: match=0, delete=3, insert=3, substitute=2.5, merge=2.7, split=2.8
+weights = {}
+for a in langmodel.alphabet:
+    weights[(a,a)] = 0.0
+    weights[(a,'')] = 3.0
+    weights[('',a)] = 3.0
+    for b in langmodel.alphabet:
+        if a != b: weights[(a,b)] = 2.5
+        for c in langmodel.alphabet:
+            if a != c and b != c:
+                weights[(a+b,c)] = 2.7
+                weights[(c,a+b)] = 2.8
+
+# Merge: 'нормално' -> 'юрмално' (но -> ю is a merge, cost 2.7)
+print('editWeight (нормално -> юрмално):', a1.editWeight('нормално', 'юрмално', weights))
+
+# Split: 'ще' -> 'ште' (щ -> шт is a split, cost 2.8)
+print('editWeight (ще -> ште):', a1.editWeight('ще', 'ште', weights))
+
+# Substitution: 'заявката' -> 'заявьата' (к -> ь, cost 2.5)
+print('editWeight (заявката -> заявьата):', a1.editWeight('заявката', 'заявьата', weights))
+
+# Insertion: 'заявката' -> 'заявкатаа' (extra а, cost 3.0)
+print('editWeight (заявката -> заявкатаа):', a1.editWeight('заявката', 'заявкатаа', weights))
+"
+
+# Run full test (requires corpus from http://dcl.bas.bg/BulNC-registration/)
+# python test.py
 ```
 
 ---
