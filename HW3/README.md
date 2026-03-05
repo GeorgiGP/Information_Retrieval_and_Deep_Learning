@@ -310,8 +310,14 @@ HW3/
 ### 8.3 Execution
 
 ```bash
-# Activate environment
-conda activate tii
+# Create and activate virtual environment (first time only)
+cd HW3
+python3 -m venv venv
+source venv/bin/activate
+pip install torch numpy
+
+# Navigate to working directory
+cd a3
 
 # Prepare data from corpus
 python run.py prepare
@@ -326,7 +332,8 @@ python run.py train modelLSTM
 python run.py perplexity
 
 # Generate poem
-python run.py generate "Никола Вапцаров" "{Свобода\n"
+python run.py generate "Никола Вапцаров" "{Свобода
+"
 
 # Generate with custom temperature
 python run.py generate "Христо Ботев" "{" 0.6
