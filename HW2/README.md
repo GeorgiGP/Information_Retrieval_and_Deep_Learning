@@ -321,8 +321,14 @@ HW2/
 ### 8.3 Execution
 
 ```bash
-# Activate environment
-conda activate tii
+# Create and activate virtual environment (first time only)
+cd HW2
+python3 -m venv venv
+source venv/bin/activate
+pip install numpy matplotlib scikit-learn nltk
+
+# Navigate to working directory
+cd a2
 
 # Run with batched gradients (default)
 python run.py
